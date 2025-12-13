@@ -1,4 +1,5 @@
-from flask import Flask, render_template, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, render_template
+from flask_cors import CORS
 import cv2
 import numpy as np
 from emotion_detector import EmotionDetector
@@ -6,21 +7,34 @@ import json
 import random
 import os
 from datetime import datetime
+import base64
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS
+
 emotion_detector = EmotionDetector()
 
 # Configurare categorii emoji
 EMOJI_CATEGORIES = {
-    'happy': ['😊', '😄', '🤗', '😁', '🥳'],
-    'sad': ['😢', '😔', '😞', '😿', '💔'],
-    'angry': ['😠', '😡', '🤬', '👿', '💢'],
-    'surprise': ['😲', '😮', '🤯', '😳', '🎊'],
-    'neutral': ['😐', '😑', '🙂', '😶', '😏']
+    'happy': ['😊', '😄', '🤗', '😁', '🥳', '😍', '🌟'],
+    'sad': ['😢', '😔', '😞', '😿', '💔', '😭', '☹️'],
+    'angry': ['😠', '😡', '🤬', '👿', '💢', '😤', '💥'],
+    'surprise': ['😲', '😮', '🤯', '😳', '🎊', '✨', '🎉'],
+    'neutral': ['😐', '😑', '🙂', '😶', '😏', '🤔', '😌']
 }
 
 current_category = 'happy'
 emotion_history = []
+camera = None
+
+def get_camera():
+    """Obține instanța camerei"""
+    global camera
+    if camera is None:
+        camera = cv2.VideoCapture(0)
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    return camera
 
 @app.route('/')
 def index():
@@ -35,12 +49,15 @@ def video_feed():
 
 def generate_frames():
     """Generează cadre video cu detectarea emoțiilor"""
-    camera = cv2.VideoCapture(0)
+    cam = get_camera()
     
     while True:
-        success, frame = camera.read()
+        success, frame = cam.read()
         if not success:
             break
+        
+        # Flip horizontal pentru efect oglindă
+        frame = cv2.flip(frame, 1)
         
         # Detectează emoția
         emotion, confidence = emotion_detector.detect_emotion(frame)
@@ -54,18 +71,18 @@ def generate_frames():
         
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-    
-    camera.release()
 
 @app.route('/get_emotion')
 def get_emotion():
     """Obține emoția curentă detectată"""
-    camera = cv2.VideoCapture(0)
-    success, frame = camera.read()
-    camera.release()
+    cam = get_camera()
+    success, frame = cam.read()
     
     if not success:
         return jsonify({'error': 'Nu s-a putut accesa camera'}), 500
+    
+    # Flip horizontal
+    frame = cv2.flip(frame, 1)
     
     emotion, confidence = emotion_detector.detect_emotion(frame)
     
@@ -88,6 +105,27 @@ def get_emotion():
         'confidence': float(confidence),
         'emoji': emoji,
         'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/capture_frame')
+def capture_frame():
+    """Capturează un singur frame ca base64"""
+    cam = get_camera()
+    success, frame = cam.read()
+    
+    if not success:
+        return jsonify({'error': 'Nu s-a putut accesa camera'}), 500
+    
+    # Flip horizontal
+    frame = cv2.flip(frame, 1)
+    
+    # Convertește în JPEG
+    ret, buffer = cv2.imencode('.jpg', frame)
+    frame_base64 = base64.b64encode(buffer).decode('utf-8')
+    
+    return jsonify({
+        'success': True,
+        'image': f'data:image/jpeg;base64,{frame_base64}'
     })
 
 @app.route('/get_emoji/<emotion>')
@@ -124,23 +162,26 @@ def clear_history():
 @app.route('/save_capture', methods=['POST'])
 def save_capture():
     """Salvează o captură cu emoția detectată"""
-    camera = cv2.VideoCapture(0)
-    success, frame = camera.read()
-    camera.release()
+    cam = get_camera()
+    success, frame = cam.read()
     
     if not success:
         return jsonify({'error': 'Nu s-a putut accesa camera'}), 500
+    
+    # Flip horizontal
+    frame = cv2.flip(frame, 1)
     
     emotion, confidence = emotion_detector.detect_emotion(frame)
     frame = emotion_detector.draw_results(frame, emotion, confidence)
     
     # Creează directorul pentru capturi dacă nu există
-    os.makedirs('static/captures', exist_ok=True)
+    captures_dir = 'static/captures'
+    os.makedirs(captures_dir, exist_ok=True)
     
     # Salvează imaginea
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'capture_{emotion}_{timestamp}.jpg'
-    filepath = os.path.join('static/captures', filename)
+    filepath = os.path.join(captures_dir, filename)
     cv2.imwrite(filepath, frame)
     
     return jsonify({
@@ -150,5 +191,13 @@ def save_capture():
         'confidence': float(confidence)
     })
 
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok', 'message': 'Backend is running'})
+
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+    print("🎭 Emotion Detection System")
+    print("📡 Server running on http://localhost:5000")
+    print("🎥 Camera access required")
+    app.run(debug=True, threaded=True, port=5000)

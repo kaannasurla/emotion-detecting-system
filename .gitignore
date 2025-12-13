@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Project
+static/captures/*
+!static/captures/.gitkeep
+models/emotion_model.h5
+
+# OS
+.DS_Store
+Thumbs.db
