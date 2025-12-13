@@ -8,6 +8,5 @@ venv
 env/
 static/captures/*
 !static/captures/.gitkeep
-models/
 .DS_Store
 Thumbs.db
