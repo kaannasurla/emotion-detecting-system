@@ -58,5 +58,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Training data
+training/data/
+training/raw_data/
+training/training_history.png
+
 # Docker
 .docker/
