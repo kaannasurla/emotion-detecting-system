@@ -11,25 +11,25 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
-# Configuration
+# Configurare
 IMG_SIZE = 48
 BATCH_SIZE = 64
 EPOCHS = 50
 LEARNING_RATE = 0.001
-DATA_DIR = 'data'  # Expected structure: data/train/class_name and data/test/class_name
+DATA_DIR = 'data'  # Structura așteptată: data/train/nume_clasă și data/test/nume_clasă
 MODEL_PATH = '../models/emotion_model.h5'
 
-# Check if data directory exists
+# Verificare existență director date
 if not os.path.exists(DATA_DIR):
-    print(f"Error: Data directory '{DATA_DIR}' not found.")
-    print("Please download a dataset (e.g., FER-2013) and extract it here.")
-    print("Expected structure:")
+    print(f"Eroare: Directorul de date '{DATA_DIR}' nu a fost găsit.")
+    print("Vă rugăm să descărcați un dataset (ex. FER-2013) și să îl extrageți aici.")
+    print("Structura așteptată:")
     print(f"  {DATA_DIR}/train/angry/...")
     print(f"  {DATA_DIR}/train/happy/...")
     print("  etc.")
     exit(1)
 
-# Generators
+# Generatoare
 train_datagen = ImageDataGenerator(
     rescale=1./255,
     rotation_range=10,
@@ -43,7 +43,7 @@ train_datagen = ImageDataGenerator(
 
 val_datagen = ImageDataGenerator(rescale=1./255)
 
-print("Loading data...")
+print("Încărcare date...")
 try:
     train_generator = train_datagen.flow_from_directory(
         os.path.join(DATA_DIR, 'train'),
@@ -55,7 +55,7 @@ try:
     )
 
     validation_generator = val_datagen.flow_from_directory(
-        os.path.join(DATA_DIR, 'test'), # Often named 'test' or 'validation' in Kaggle datasets
+        os.path.join(DATA_DIR, 'test'), # Adesea numit 'test' sau 'validation' în dataseturile Kaggle
         target_size=(IMG_SIZE, IMG_SIZE),
         batch_size=BATCH_SIZE,
         color_mode='grayscale',
@@ -63,16 +63,16 @@ try:
         shuffle=False
     )
 except Exception as e:
-    print(f"Error loading data: {e}")
-    print("Ensure you have 'train' and 'test' subdirectories in 'data/'.")
+    print(f"Eroare la încărcarea datelor: {e}")
+    print("Asigurați-vă că aveți subdirectoarele 'train' și 'test' în 'data/'.")
     exit(1)
 
-# Model Definition
-# Based on VGG-style architecture simplified for FER
+# Definire Model
+# Bazat pe arhitectură stil VGG simplificată
 def build_model(num_classes):
     model = Sequential()
     
-    # Block 1
+    # Bloc 1
     model.add(Input(shape=(IMG_SIZE, IMG_SIZE, 1)))
     model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
     model.add(BatchNormalization())
@@ -81,7 +81,7 @@ def build_model(num_classes):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    # Block 2
+    # Bloc 2
     model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     model.add(BatchNormalization())
     model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
@@ -89,7 +89,7 @@ def build_model(num_classes):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    # Block 3
+    # Bloc 3
     model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
     model.add(BatchNormalization())
     model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
@@ -97,7 +97,7 @@ def build_model(num_classes):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    # Dense
+    # Strat Dens
     model.add(Flatten())
     model.add(Dense(512, activation='relu'))
     model.add(BatchNormalization())
@@ -109,7 +109,7 @@ def build_model(num_classes):
 
 num_classes = train_generator.num_classes
 class_names = list(train_generator.class_indices.keys())
-print(f"Detected classes: {class_names}")
+print(f"Clase detectate: {class_names}")
 
 model = build_model(num_classes)
 
@@ -121,7 +121,7 @@ model.compile(
 
 model.summary()
 
-# Callbacks
+# Callback-uri
 os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
 
 checkpoint = ModelCheckpoint(
@@ -147,8 +147,8 @@ reduce_lr = ReduceLROnPlateau(
     min_lr=1e-6
 )
 
-# Training
-print("Starting training...")
+# Antrenare
+print("Pornire antrenare...")
 history = model.fit(
     train_generator,
     steps_per_epoch=train_generator.samples // BATCH_SIZE,
@@ -158,24 +158,24 @@ history = model.fit(
     callbacks=[checkpoint, early_stopping, reduce_lr]
 )
 
-# Plotting
+# Grafice
 plt.figure(figsize=(12, 4))
 plt.subplot(1, 2, 1)
-plt.plot(history.history['accuracy'], label='Train Accuracy')
-plt.plot(history.history['val_accuracy'], label='Val Accuracy')
+plt.plot(history.history['accuracy'], label='Acuratețe Antrenare')
+plt.plot(history.history['val_accuracy'], label='Acuratețe Validare')
 plt.legend()
-plt.title('Accuracy')
+plt.title('Acuratețe')
 
 plt.subplot(1, 2, 2)
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Val Loss')
+plt.plot(history.history['loss'], label='Pierdere Antrenare')
+plt.plot(history.history['val_loss'], label='Pierdere Validare')
 plt.legend()
-plt.title('Loss')
+plt.title('Pierdere')
 plt.savefig('training_history.png')
-print("Training history saved to training_history.png")
+print("Istoricul antrenării salvat în training_history.png")
 
-# Evaluation
-print("Evaluating model...")
+# Evaluare
+print("Evaluare model...")
 predictions = model.predict(validation_generator)
 y_pred = np.argmax(predictions, axis=1)
 y_true = validation_generator.classes

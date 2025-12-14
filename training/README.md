@@ -1,22 +1,22 @@
-# Emotion Detection Training
+# Antrenarea pentru Detectarea Emoțiilor
 
-This directory contains scripts to train the emotion detection model.
+Acest director conține scripturi pentru antrenarea modelului de detectare a emoțiilor.
 
-## Files
+## Fișiere
 
-- `train.py`: The main script to train the Convolutional Neural Network (CNN).
-- `split_data.py`: A utility script to split a raw dataset into training and testing sets.
+- `train.py`: Scriptul principal pentru antrenarea Rețelei Neurale Convoluționale (CNN).
+- `split_data.py`: Un script utilitar pentru împărțirea unui set de date brut în seturi de antrenare și testare.
 
-## Setup
+## Configurare
 
-1.  **Install Dependencies**: Ensure you have the necessary Python libraries installed.
+1.  **Instalare Dependențe**: Asigurați-vă că aveți instalate bibliotecile Python necesare.
     ```bash
     pip install opencv-python numpy pandas matplotlib scikit-learn tensorflow
     ```
 
-2.  **Prepare Data**:
-    -   Place your raw dataset images in a folder named `raw_data` inside this directory.
-    -   The structure should be:
+2.  **Pregătirea Datelor**:
+    -   Puneți imaginile setului de date brut într-un dosar numit `raw_data` în interiorul acestui director.
+    -   Structura ar trebui să fie:
         ```
         raw_data/
             angry/
@@ -27,19 +27,19 @@ This directory contains scripts to train the emotion detection model.
                 ...
             ...
         ```
-    -   Run `python split_data.py` to create the `data/` directory with `train` and `test` splits.
+    -   Rulați `python split_data.py` pentru a crea directorul `data/` cu împărțirile `train` și `test`.
 
-## Training
+## Antrenare
 
-Run the training script:
+Rulați scriptul de antrenare:
 
 ```bash
 python train.py
 ```
 
-Arguments are currently hardcoded in `train.py` (e.g., `EPOCHS`, `BATCH_SIZE`). You can modify them directly in the "Configuration" section of the script.
+Argumentele sunt momentan hardcodate în `train.py` (de exemplu, `EPOCHS`, `BATCH_SIZE`). Le puteți modifica direct în secțiunea "Configuration" a scriptului.
 
-## Output
+## Rezultate
 
--   **Model**: The trained model will be saved to `../models/emotion_model.h5`.
--   **History**: A plot of the training accuracy and loss will be saved as `training_history.png`.
+-   **Model**: Modelul antrenat va fi salvat în `../models/emotion_model.h5`.
+-   **Istoric**: Un grafic al acurateței și pierderii (loss) antrenamentului va fi salvat ca `training_history.png`.

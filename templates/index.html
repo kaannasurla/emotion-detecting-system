@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -15,14 +17,20 @@
         </header>
 
         <main>
-            <!-- Video Stream Section -->
+            <!-- Secțiune Stream Video -->
             <section class="video-section">
                 <div class="video-container">
-                    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+                    <div style="position: relative;">
+                        <video id="videoFeed" autoplay playsinline muted
+                            style="width: 100%; max-width: 640px; border-radius: 8px;"></video>
+                        <canvas id="overlayCanvas"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                        <canvas id="captureCanvas" style="display: none;"></canvas>
+                    </div>
                 </div>
             </section>
 
-            <!-- Emotion Display Section -->
+            <!-- Secțiune Afișare Emoții -->
             <section class="emotion-display">
                 <div class="emotion-card">
                     <div class="emoji-display" id="emojiDisplay">😐</div>
@@ -34,7 +42,7 @@
                 </div>
             </section>
 
-            <!-- Controls Section -->
+            <!-- Secțiune Controale -->
             <section class="controls">
                 <button class="btn btn-primary" onclick="updateEmotion()">
                     🔄 Detectează Emoția
@@ -50,7 +58,7 @@
                 </button>
             </section>
 
-            <!-- Category Selection -->
+            <!-- Selecție Categorii -->
             <section class="categories">
                 <h3>Categorii Emoji:</h3>
                 <div class="category-buttons">
@@ -62,13 +70,13 @@
                 </div>
             </section>
 
-            <!-- History Chart Section -->
+            <!-- Secțiune Istoric Grafic -->
             <section class="history-section" id="historySection" style="display: none;">
                 <h3>Istoric Emoții</h3>
                 <canvas id="emotionChart"></canvas>
             </section>
 
-            <!-- Status Messages -->
+            <!-- Mesaje Status -->
             <div class="status-message" id="statusMessage"></div>
         </main>
 
@@ -79,4 +87,5 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>
