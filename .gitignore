@@ -60,6 +60,8 @@ yarn-error.log*
 
 # Training data
 training/data/
+training/data/train/*/*.png
+training/data/test/*/*.png
 training/raw_data/
 training/training_history.png
 
