@@ -123,21 +123,21 @@ class EmotionDetector:
             confidence = 0.8 + min((avg_ear - 0.35) * 4, 0.2)
             
         # Furios: EAR scăzut (mijește ochii) + Compresie (MAR scăzut) + poate sprâncene
-        elif avg_ear < 0.22 and mar < 0.15:
+        elif avg_ear < 0.25 and mar < 0.2:
             # Verifică dacă sprâncenele sunt încruntate? (Nu e ușor fără o linie de bază pașnică)
             # Presupunând mijește ochii + gură închisă = Furios/Serios
             emotion = 'angry'
             confidence = 0.7
             
         # Trist: Zâmbet inversat? Colțuri mai jos decât centrul
-        # Prag ajustat: -0.015 ar putea fi prea dur. Să încercăm -0.01.
+        # Prag ajustat: -0.005 pentru sensibilitate mai mare.
         # ȘI verifică dacă sprâncenele arată 'trist' (interior mai sus ca exterior) SAU doar încruntare puternică.
-        elif smile_ratio < -0.010:
+        elif smile_ratio < -0.005:
             emotion = 'sad'
             confidence = 0.6 + abs(smile_ratio * 2)
             
         # Rezervă Trist: Încruntare ușoară + Sprâncene Triste
-        elif smile_ratio < -0.005 and sad_brows:
+        elif smile_ratio < -0.002 and sad_brows:
             emotion = 'sad'
             confidence = 0.65
             
