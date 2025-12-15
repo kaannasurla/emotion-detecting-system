@@ -1,4 +1,5 @@
 // Variabile globale
+const POLLING_INTERVAL = 1000; // Interval de actualizare în ms
 let chart = null;
 let autoUpdateInterval = null;
 let currentEmotion = 'neutral';
@@ -102,7 +103,7 @@ function startAutoUpdate() {
     if (autoUpdateInterval) clearInterval(autoUpdateInterval);
     autoUpdateInterval = setInterval(() => {
         processFrame();
-    }, 500); // Procesează la fiecare 500ms (mai rapid decât polling-ul anterior)
+    }, POLLING_INTERVAL); // Folosește constanta definită global
 }
 
 function stopAutoUpdate() {

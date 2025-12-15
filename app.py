@@ -8,6 +8,7 @@ import random
 import os
 from datetime import datetime
 import base64
+from collections import deque, Counter
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS
@@ -25,6 +26,7 @@ EMOJI_CATEGORIES = {
 
 current_category = 'happy'
 emotion_history = []
+emotion_window = deque(maxlen=3)
 @app.route('/')
 def index():
     """Pagina principală"""
@@ -49,14 +51,29 @@ def process_frame():
 
         # Detectare emoție
         emotion, confidence = emotion_detector.detect_emotion(frame)
+
+        # Smooth logic: Average out the emotion detection
+        global emotion_window
+        emotion_window.append((emotion, confidence))
         
+        # Determine logical emotion based on recent history
+        emotions = [e[0] for e in emotion_window]
+        if emotions:
+            final_emotion = Counter(emotions).most_common(1)[0][0]
+        else:
+            final_emotion = emotion
+            
+        # Calculate average confidence for the dominant emotion
+        confidences = [e[1] for e in emotion_window if e[0] == final_emotion]
+        final_confidence = sum(confidences) / len(confidences) if confidences else confidence
+
         # Actualizare istoric
         global emotion_history
-        emoji = random.choice(EMOJI_CATEGORIES.get(emotion, EMOJI_CATEGORIES['neutral']))
+        emoji = random.choice(EMOJI_CATEGORIES.get(final_emotion, EMOJI_CATEGORIES['neutral']))
         
         emotion_history.append({
-            'emotion': emotion,
-            'confidence': float(confidence),
+            'emotion': final_emotion,
+            'confidence': float(final_confidence),
             'timestamp': datetime.now().isoformat()
         })
         
@@ -64,8 +81,8 @@ def process_frame():
             emotion_history.pop(0)
 
         return jsonify({
-            'emotion': emotion,
-            'confidence': float(confidence),
+            'emotion': final_emotion,
+            'confidence': float(final_confidence),
             'emoji': emoji,
             'timestamp': datetime.now().isoformat()
         })
