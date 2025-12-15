@@ -6,12 +6,16 @@ let currentEmotion = 'neutral';
 let videoElement = null;
 let captureCanvas = null;
 let captureContext = null;
+let overlayCanvas = null;
+let overlayContext = null;
 
 // Inițializare la încărcarea paginii
 document.addEventListener('DOMContentLoaded', function () {
     videoElement = document.getElementById('videoFeed');
     captureCanvas = document.getElementById('captureCanvas');
     captureContext = captureCanvas.getContext('2d');
+    overlayCanvas = document.getElementById('overlayCanvas');
+    overlayContext = overlayCanvas.getContext('2d');
 
     initializeChart();
     startCamera();
@@ -34,6 +38,8 @@ async function startCamera() {
             videoElement.play();
             captureCanvas.width = videoElement.videoWidth;
             captureCanvas.height = videoElement.videoHeight;
+            overlayCanvas.width = videoElement.videoWidth;
+            overlayCanvas.height = videoElement.videoHeight;
             startAutoUpdate();
         };
     } catch (error) {
@@ -96,6 +102,25 @@ function updateUI(data) {
 
     // Actualizează graficul
     updateChart();
+
+    // Desenează bounding box
+    drawBoundingBox(data);
+}
+
+function drawBoundingBox(data) {
+    if (!overlayContext || !overlayCanvas) return;
+
+    // Curăță canvas-ul
+    overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+    if (data.face_coordinates) {
+        const { x, y, w, h } = data.face_coordinates;
+        const color = data.color || 'white';
+
+        overlayContext.strokeStyle = color;
+        overlayContext.lineWidth = 4;
+        overlayContext.strokeRect(x, y, w, h);
+    }
 }
 
 // Actualizare automată periodică

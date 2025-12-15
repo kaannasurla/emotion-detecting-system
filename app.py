@@ -11,7 +11,7 @@ import base64
 from collections import deque, Counter
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app)  # Activează CORS
 
 emotion_detector = EmotionDetector()
 
@@ -50,20 +50,20 @@ def process_frame():
             return jsonify({'error': 'Failed to decode image'}), 400
 
         # Detectare emoție
-        emotion, confidence = emotion_detector.detect_emotion(frame)
+        emotion, confidence, face_coords = emotion_detector.detect_emotion(frame)
 
-        # Smooth logic: Average out the emotion detection
+        # Logică de netezire: Mediază detectarea emoțiilor
         global emotion_window
         emotion_window.append((emotion, confidence))
         
-        # Determine logical emotion based on recent history
+        # Determină emoția logică bazată pe istoricul recent
         emotions = [e[0] for e in emotion_window]
         if emotions:
             final_emotion = Counter(emotions).most_common(1)[0][0]
         else:
             final_emotion = emotion
             
-        # Calculate average confidence for the dominant emotion
+        # Calculează încrederea medie pentru emoția dominantă
         confidences = [e[1] for e in emotion_window if e[0] == final_emotion]
         final_confidence = sum(confidences) / len(confidences) if confidences else confidence
 
@@ -80,12 +80,28 @@ def process_frame():
         if len(emotion_history) > 50:
             emotion_history.pop(0)
 
-        return jsonify({
+        # Obține culoarea pentru emoții
+        emotion_color = emotion_detector.get_emotion_color(final_emotion)
+        # Convertește BGR (OpenCV) la RGB (Web)
+        web_color = f"rgb({emotion_color[2]}, {emotion_color[1]}, {emotion_color[0]})"
+
+        response_data = {
             'emotion': final_emotion,
             'confidence': float(final_confidence),
             'emoji': emoji,
-            'timestamp': datetime.now().isoformat()
-        })
+            'timestamp': datetime.now().isoformat(),
+            'color': web_color
+        }
+        
+        if face_coords:
+            response_data['face_coordinates'] = {
+                'x': face_coords[0],
+                'y': face_coords[1],
+                'w': face_coords[2],
+                'h': face_coords[3]
+            }
+            
+        return jsonify(response_data)
 
     except Exception as e:
         print(f"Error processing frame: {e}")
@@ -103,8 +119,8 @@ def get_emotion():
         })
     
     last_entry = emotion_history[-1]
-    # Re-fetch emoji just in case or use stored one? logic says just return last state.
-    # We will just return the last entry plus an emoji.
+    # Re-preia emoji doar în caz sau folosește unul stocat? logica spune să returnăm ultima stare.
+    # Vom returna doar ultima intrare plus un emoji.
     emoji = random.choice(EMOJI_CATEGORIES.get(last_entry['emotion'], EMOJI_CATEGORIES['neutral']))
     return jsonify({
         'emotion': last_entry['emotion'],
@@ -161,7 +177,7 @@ def save_capture():
         if frame is None:
             return jsonify({'error': 'Failed to decode image'}), 400
     
-        emotion, confidence = emotion_detector.detect_emotion(frame)
+        emotion, confidence, _ = emotion_detector.detect_emotion(frame)
         frame = emotion_detector.draw_results(frame, emotion, confidence)
         
         # Creează directorul pentru capturi dacă nu există
@@ -186,7 +202,7 @@ def save_capture():
 
 @app.route('/health')
 def health():
-    """Health check endpoint"""
+    """Endpoint de verificare a stării"""
     return jsonify({'status': 'ok', 'message': 'Backend is running'})
 
 if __name__ == '__main__':
