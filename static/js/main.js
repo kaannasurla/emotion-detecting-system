@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     overlayContext = overlayCanvas.getContext('2d');
 
     initializeChart();
+    checkAvailableModels();
     startCamera();
 });
 
@@ -41,6 +42,9 @@ async function startCamera() {
             overlayCanvas.width = videoElement.videoWidth;
             overlayCanvas.height = videoElement.videoHeight;
             startAutoUpdate();
+            window.addEventListener('beforeunload', function () {
+                stopAutoUpdate();
+            });
         };
     } catch (error) {
         console.error('Eroare la accesarea camerei:', error);
@@ -349,3 +353,67 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', function () {
     stopAutoUpdate();
 });
+
+// --- Funcții noi pentru schimbarea modelului ---
+
+async function checkAvailableModels() {
+    try {
+        const response = await fetch('/get_models');
+        const data = await response.json();
+
+        // Dacă avem mai mult de un model, afișăm toggle-ul
+        if (data.models && data.models.length > 1) {
+            document.getElementById('modelToggleContainer').style.display = 'block';
+        }
+
+        if (data.current) {
+            updateModelButtons(data.current);
+        }
+    } catch (error) {
+        console.error('Eroare la verificarea modelelor:', error);
+    }
+}
+
+async function switchModel(modelName) {
+    try {
+        const response = await fetch('/switch_model', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ model: modelName })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            updateModelButtons(data.model);
+            showMessage(`Model activat: ${capitalizeFirst(data.model)}`, 'success');
+        } else {
+            showMessage(data.error || 'Eroare la schimbarea modelului', 'error');
+        }
+    } catch (error) {
+        console.error('Eroare la schimbarea modelului:', error);
+        showMessage('Eroare de rețea', 'error');
+    }
+}
+
+function updateModelButtons(activeModel) {
+    const btnMp = document.getElementById('btnMediapipe');
+    const btnTf = document.getElementById('btnTensorflow');
+
+    if (!btnMp || !btnTf) return;
+
+    // Reset stiluri
+    const commonStyle = "padding: 10px 25px; font-size: 1.1em; border-radius: 8px; font-weight: bold; margin: 0 10px; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+    const activeStyle = `background-color: #5a67d8; color: white; border: 2px solid #4c51bf; transform: scale(1.05); ${commonStyle}`;
+    const inactiveStyle = `background-color: #e2e8f0; color: #718096; border: 2px solid #cbd5e0; ${commonStyle}`;
+
+    if (activeModel === 'mediapipe') {
+        btnMp.style.cssText = activeStyle;
+        btnTf.style.cssText = inactiveStyle;
+    } else {
+        btnMp.style.cssText = inactiveStyle;
+        btnTf.style.cssText = activeStyle;
+    }
+}
