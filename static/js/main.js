@@ -380,8 +380,9 @@ function updateModelButtons(activeModel) {
     if (!btnMp || !btnTf) return;
 
     // Reset stiluri
-    const activeStyle = "background-color: #667eea; color: white; padding: 5px 15px; font-size: 0.9em;";
-    const inactiveStyle = "background-color: #cbd5e0; color: white; padding: 5px 15px; font-size: 0.9em;";
+    const commonStyle = "padding: 10px 25px; font-size: 1.1em; border-radius: 8px; font-weight: bold; margin: 0 10px; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);";
+    const activeStyle = `background-color: #5a67d8; color: white; border: 2px solid #4c51bf; transform: scale(1.05); ${commonStyle}`;
+    const inactiveStyle = `background-color: #e2e8f0; color: #718096; border: 2px solid #cbd5e0; ${commonStyle}`;
 
     if (activeModel === 'mediapipe') {
         btnMp.style.cssText = activeStyle;
