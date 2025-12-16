@@ -44,6 +44,12 @@
 
             <!-- Secțiune Controale -->
             <section class="controls">
+                <div id="modelToggleContainer" style="margin-bottom: 20px; display: none;">
+                    <span style="font-weight: bold; margin-right: 10px; color: #4a5568;">Model AI:</span>
+                    <button id="btnMediapipe" class="btn" style="background-color: #667eea; color: white; padding: 5px 15px; font-size: 0.9em;" onclick="switchModel('mediapipe')">Mediapipe</button>
+                    <button id="btnTensorflow" class="btn" style="background-color: #cbd5e0; color: white; padding: 5px 15px; font-size: 0.9em;" onclick="switchModel('tensorflow')">Tensorflow</button>
+                </div>
+
                 <button class="btn btn-primary" onclick="updateEmotion()">
                     🔄 Detectează Emoția
                 </button>

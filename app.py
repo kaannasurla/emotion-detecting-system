@@ -2,7 +2,8 @@ from flask import Flask, Response, jsonify, request, render_template
 from flask_cors import CORS
 import cv2
 import numpy as np
-from emotion_detector import EmotionDetector
+from emotion_detector_mediapipe import EmotionDetector as MediapipeDetector
+from emotion_detector_tensorflow import EmotionDetector as TensorflowDetector
 import json
 import random
 import os
@@ -13,7 +14,40 @@ from collections import deque, Counter
 app = Flask(__name__)
 CORS(app)  # Activează CORS
 
-emotion_detector = EmotionDetector()
+# Inițializare detectori
+detectors = {}
+
+# 1. Mediapipe (Default)
+try:
+    detectors['mediapipe'] = MediapipeDetector()
+    print("✅ Mediapipe detector initialized")
+except Exception as e:
+    print(f"❌ Failed to initialize Mediapipe: {e}")
+
+# 2. Tensorflow (Old AI)
+try:
+    tf_detector = TensorflowDetector()
+    if tf_detector.model_loaded:
+        detectors['tensorflow'] = tf_detector
+        print("✅ Tensorflow detector initialized")
+    else:
+        print("⚠️ Tensorflow model could not be loaded. Restricted to Mediapipe only.")
+except Exception as e:
+    print(f"❌ Failed to initialize Tensorflow detector: {e}")
+
+# Setare model curent default
+current_model_name = 'mediapipe' if 'mediapipe' in detectors else list(detectors.keys())[0] if detectors else None
+
+def get_current_detector():
+    if not current_model_name or current_model_name not in detectors:
+        # Fallback
+        if 'mediapipe' in detectors:
+            return detectors['mediapipe']
+        elif detectors:
+            return list(detectors.values())[0]
+        else:
+            raise Exception("No detectors available")
+    return detectors[current_model_name]
 
 # Configurare categorii emoji
 EMOJI_CATEGORIES = {
@@ -50,7 +84,8 @@ def process_frame():
             return jsonify({'error': 'Failed to decode image'}), 400
 
         # Detectare emoție
-        emotion, confidence = emotion_detector.detect_emotion(frame)
+        detector = get_current_detector()
+        emotion, confidence = detector.detect_emotion(frame)
 
         # Logică de netezire: Mediază detectarea emoțiilor
         global emotion_window
@@ -144,6 +179,27 @@ def clear_history():
     emotion_history = []
     return jsonify({'success': True})
 
+@app.route('/switch_model', methods=['POST'])
+def switch_model():
+    """Schimbă modelul de detectare activ"""
+    global current_model_name
+    data = request.json
+    model = data.get('model')
+    
+    if model in detectors:
+        current_model_name = model
+        return jsonify({'success': True, 'model': current_model_name})
+    
+    return jsonify({'error': 'Invalid model or model not available', 'available': list(detectors.keys())}), 400
+
+@app.route('/get_models')
+def get_models():
+    """Returnează modelele disponibile și cel activ"""
+    return jsonify({
+        'models': list(detectors.keys()),
+        'current': current_model_name
+    })
+
 @app.route('/save_capture', methods=['POST'])
 def save_capture():
     """Salvează o captură cu emoția detectată"""
@@ -161,8 +217,9 @@ def save_capture():
         if frame is None:
             return jsonify({'error': 'Failed to decode image'}), 400
     
-        emotion, confidence = emotion_detector.detect_emotion(frame)
-        frame = emotion_detector.draw_results(frame, emotion, confidence)
+        detector = get_current_detector()
+        emotion, confidence = detector.detect_emotion(frame)
+        frame = detector.draw_results(frame, emotion, confidence)
         
         # Creează directorul pentru capturi dacă nu există
         captures_dir = 'static/captures'
