@@ -85,7 +85,7 @@ def process_frame():
 
         # Detectare emoție
         detector = get_current_detector()
-        emotion, confidence = detector.detect_emotion(frame)
+        emotion, confidence, face_coords = detector.detect_emotion(frame)
 
         # Logică de netezire: Mediază detectarea emoțiilor
         global emotion_window
@@ -115,12 +115,22 @@ def process_frame():
         if len(emotion_history) > 50:
             emotion_history.pop(0)
 
-        return jsonify({
+        response_data = {
             'emotion': final_emotion,
             'confidence': float(final_confidence),
             'emoji': emoji,
             'timestamp': datetime.now().isoformat()
-        })
+        }
+
+        if face_coords:
+            response_data['face_coordinates'] = {
+                'x': face_coords[0],
+                'y': face_coords[1],
+                'w': face_coords[2],
+                'h': face_coords[3]
+            }
+
+        return jsonify(response_data)
 
     except Exception as e:
         print(f"Error processing frame: {e}")
@@ -218,7 +228,7 @@ def save_capture():
             return jsonify({'error': 'Failed to decode image'}), 400
     
         detector = get_current_detector()
-        emotion, confidence = detector.detect_emotion(frame)
+        emotion, confidence, _ = detector.detect_emotion(frame)
         frame = detector.draw_results(frame, emotion, confidence)
         
         # Creează directorul pentru capturi dacă nu există

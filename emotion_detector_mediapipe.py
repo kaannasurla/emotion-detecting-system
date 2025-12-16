@@ -35,7 +35,7 @@ class EmotionDetector:
         results = self.face_mesh.process(frame_rgb)
         
         if not results.multi_face_landmarks:
-            return 'neutral', 0.0
+            return 'neutral', 0.0, None
 
         landmarks = results.multi_face_landmarks[0].landmark
         
@@ -149,7 +149,7 @@ class EmotionDetector:
         if emotion == 'neutral' and mar > 0.5:
              emotion = 'surprise' # Sau fericit?
              
-        return emotion, confidence
+        return emotion, confidence, None
 
     def draw_results(self, frame, emotion, confidence):
         """Desenează rețeaua și informațiile pe cadru"""

@@ -71,7 +71,7 @@ class EmotionDetector:
         )
         
         if len(faces) == 0:
-            return 'neutral', 0.0
+            return 'neutral', 0.0, None
         
         # Folosește prima față detectată (sau cea mai mare)
         if len(faces) > 1:
@@ -99,7 +99,7 @@ class EmotionDetector:
             # Simulare: detectare bazată pe caracteristici simple
             emotion, confidence = self.simulate_emotion_detection(face_roi)
         
-        return emotion, confidence
+        return emotion, confidence, (int(x), int(y), int(w), int(h))
     
     def simulate_emotion_detection(self, face_roi):
         """
