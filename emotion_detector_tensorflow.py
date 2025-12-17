@@ -33,7 +33,7 @@ class EmotionDetector:
             print("Using simulation mode...")
             self.model_loaded = False
         
-        cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+        cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_alt2.xml'
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
         
         if self.face_cascade.empty():

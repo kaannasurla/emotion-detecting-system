@@ -58,6 +58,15 @@ EMOJI_CATEGORIES = {
     'neutral': ['😐', '😑', '🙂', '😶', '😏', '🤔', '😌']
 }
 
+# Culori pentru bounding box (format HEX pentru CSS/Canvas)
+EMOTION_COLORS = {
+    'happy': '#00ff00',      # Verde
+    'sad': '#0000ff',        # Albastru
+    'angry': '#ff0000',      # Roșu
+    'surprise': '#ffff00',   # Galben
+    'neutral': '#808080'     # Gri
+}
+
 current_category = 'happy'
 emotion_history = []
 emotion_window = deque(maxlen=3)
@@ -119,7 +128,8 @@ def process_frame():
             'emotion': final_emotion,
             'confidence': float(final_confidence),
             'emoji': emoji,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'color': EMOTION_COLORS.get(final_emotion, '#ffffff')
         }
 
         if face_coords:
