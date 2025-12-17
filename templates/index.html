@@ -39,6 +39,14 @@
                         <button id="btnTensorflow" class="btn" onclick="switchModel('tensorflow')"
                             style="transition: all 0.3s ease;">Tensorflow</button>
                     </div>
+                    <!-- Toggle Face Mesh -->
+                    <div style="margin-top: 15px;">
+                        <label class="switch" style="display: inline-flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="toggleFaceMesh" onchange="toggleMesh()"
+                                style="margin-right: 10px;">
+                            <span style="font-weight: bold; color: #4a5568;">Afișează Face Mesh</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="video-container">
                     <div style="position: relative;">
