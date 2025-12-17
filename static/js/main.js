@@ -98,7 +98,7 @@ function updateUI(data) {
     // Actualizează interfața cu imaginea
     const emotionImage = document.getElementById('emotionImage');
     const fallbackEmoji = document.getElementById('fallbackEmoji');
-    
+
     if (data.image) {
         emotionImage.src = data.image;
         emotionImage.style.display = 'block';
@@ -107,7 +107,7 @@ function updateUI(data) {
         emotionImage.style.display = 'none';
         fallbackEmoji.style.display = 'block';
     }
-    
+
     document.getElementById('emotionName').textContent = capitalizeFirst(data.emotion);
 
     // Actualizează bara de încredere
@@ -371,10 +371,10 @@ async function loadLibraries() {
     try {
         const response = await fetch('/get_libraries');
         const data = await response.json();
-        
+
         const libraryButtons = document.getElementById('libraryButtons');
         libraryButtons.innerHTML = '';
-        
+
         data.libraries.forEach(library => {
             const btn = document.createElement('button');
             btn.className = 'library-btn' + (library === data.current ? ' active' : '');
@@ -382,7 +382,7 @@ async function loadLibraries() {
             btn.onclick = () => switchLibrary(library);
             libraryButtons.appendChild(btn);
         });
-        
+
         currentLibrary = data.current;
     } catch (error) {
         console.error('Eroare la încărcarea bibliotecilor:', error);
@@ -406,10 +406,10 @@ async function switchLibrary(library) {
         if (data.success) {
             currentLibrary = library;
             showMessage(`Bibliotecă schimbată: ${capitalizeFirst(library.replace(/_/g, ' '))}`, 'success');
-            
+
             // Reîncarcă butoanele pentru a reflecta selectarea
             loadLibraries();
-            
+
             // Forțează o nouă detectare pentru a afișa imaginea din noua bibliotecă
             processFrame();
         }
@@ -480,5 +480,28 @@ function updateModelButtons(activeModel) {
     } else {
         btnMp.style.cssText = inactiveStyle;
         btnTf.style.cssText = activeStyle;
+    }
+
+    // Gestionare stare Face Mesh Toggle
+    const meshToggle = document.getElementById('toggleFaceMesh');
+    if (meshToggle) {
+        const isMediapipe = activeModel === 'mediapipe';
+
+        // Dezactivează checkbox-ul dacă nu suntem pe Mediapipe
+        meshToggle.disabled = !isMediapipe;
+
+        // Efect vizual pentru containerul părint
+        const container = meshToggle.closest('div');
+        if (container) {
+            container.style.opacity = isMediapipe ? '1' : '0.5';
+            container.style.pointerEvents = isMediapipe ? 'auto' : 'none';
+        }
+
+        // Dacă schimbăm pe altceva decât Mediapipe și mesh-ul e activ, îl oprim
+        if (!isMediapipe && meshToggle.checked) {
+            meshToggle.checked = false;
+            // Actualizăm variabila globală și declanșăm logica de toggle
+            toggleMesh();
+        }
     }
 }
