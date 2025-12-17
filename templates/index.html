@@ -17,6 +17,14 @@
         </header>
 
         <main>
+            <!-- Secțiune Selectare Bibliotecă -->
+            <section class="library-section">
+                <h3>📚 Selectează Biblioteca de Imagini:</h3>
+                <div class="library-buttons" id="libraryButtons">
+                    <!-- Butoanele vor fi generate din JavaScript -->
+                </div>
+            </section>
+
             <!-- Secțiune Stream Video -->
             <section class="video-section">
                 <!-- Selectare Model Centrată și Mare -->
@@ -46,7 +54,10 @@
             <!-- Secțiune Afișare Emoții -->
             <section class="emotion-display">
                 <div class="emotion-card">
-                    <div class="emoji-display" id="emojiDisplay">😐</div>
+                    <div class="emotion-image-display" id="emotionImageDisplay">
+                        <img id="emotionImage" src="" alt="Emotion" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                        <div id="fallbackEmoji" style="font-size: 4em;">😐</div>
+                    </div>
                     <h2 class="emotion-name" id="emotionName">Neutral</h2>
                     <div class="confidence-bar">
                         <div class="confidence-fill" id="confidenceFill"></div>
@@ -73,17 +84,8 @@
                 </button>
             </section>
 
-            <!-- Selecție Categorii -->
-            <section class="categories">
-                <h3>Categorii Emoji:</h3>
-                <div class="category-buttons">
-                    <button class="category-btn" onclick="changeCategory('happy')">😊 Fericit</button>
-                    <button class="category-btn" onclick="changeCategory('sad')">😢 Trist</button>
-                    <button class="category-btn" onclick="changeCategory('angry')">😠 Furios</button>
-                    <button class="category-btn" onclick="changeCategory('surprise')">😲 Surprins</button>
-                    <button class="category-btn" onclick="changeCategory('neutral')">😐 Neutru</button>
-                </div>
-            </section>
+            <!-- Selecție Categorii (ștergem secțiunea veche) -->
+            <!-- Secțiunea de categorii emoji a fost înlocuită cu selectorul de biblioteci de mai sus -->
 
             <!-- Secțiune Istoric Grafic -->
             <section class="history-section" id="historySection" style="display: none;">

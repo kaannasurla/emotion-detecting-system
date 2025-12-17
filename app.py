@@ -49,18 +49,54 @@ def get_current_detector():
             raise Exception("No detectors available")
     return detectors[current_model_name]
 
-# Configurare categorii emoji
-EMOJI_CATEGORIES = {
-    'happy': ['😊', '😄', '🤗', '😁', '🥳', '😍', '🌟'],
-    'sad': ['😢', '😔', '😞', '😿', '💔', '😭', '☹️'],
-    'angry': ['😠', '😡', '🤬', '👿', '💢', '😤', '💥'],
-    'surprise': ['😲', '😮', '🤯', '😳', '🎊', '✨', '🎉'],
-    'neutral': ['😐', '😑', '🙂', '😶', '😏', '🤔', '😌']
+# Configurare biblioteci de imagini
+LIBRARIES = {
+    'clash_royale': 'static/libraries/clash_royale',
+    'monkey': 'static/libraries/monkey',
+    'florin_salam': 'static/libraries/florin_salam'
 }
 
-current_category = 'happy'
+# Mapare emoții la nume de fișiere
+EMOTION_FILENAMES = {
+    'happy': 'happy',
+    'sad': 'sad',
+    'angry': 'angry',
+    'surprise': 'surprise',
+    'neutral': 'neutral'
+}
+
+current_library = 'clash_royale'  # Biblioteca selectată
 emotion_history = []
 emotion_window = deque(maxlen=3)
+
+def get_image_for_emotion(emotion, library_name):
+    """Obține calea imaginii pentru o emoție dintr-o bibliotecă specifică"""
+    try:
+        if library_name not in LIBRARIES:
+            library_name = 'clash_royale'
+        
+        library_path = LIBRARIES[library_name]
+        emotion_key = EMOTION_FILENAMES.get(emotion, 'neutral')
+        
+        # Caută fișierele cu extensii comune
+        for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+            image_file = os.path.join(library_path, f'{emotion_key}.{ext}')
+            if os.path.exists(image_file):
+                # Returnează calea relativă pentru frontend
+                return f'/{image_file}'
+        
+        # Dacă nu gaseste, caută orice fișier care conține emoția în nume
+        if os.path.exists(library_path):
+            files = os.listdir(library_path)
+            for f in files:
+                if emotion_key in f.lower() and any(f.endswith(ext) for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']):
+                    return f'/{os.path.join(library_path, f)}'
+        
+        # Fallback - returnează None dacă nu găsește
+        return None
+    except Exception as e:
+        print(f"Error getting image: {e}")
+        return None
 @app.route('/')
 def index():
     """Pagina principală"""
@@ -104,7 +140,7 @@ def process_frame():
 
         # Actualizare istoric
         global emotion_history
-        emoji = random.choice(EMOJI_CATEGORIES.get(final_emotion, EMOJI_CATEGORIES['neutral']))
+        image_path = get_image_for_emotion(final_emotion, current_library)
         
         emotion_history.append({
             'emotion': final_emotion,
@@ -118,7 +154,8 @@ def process_frame():
         response_data = {
             'emotion': final_emotion,
             'confidence': float(final_confidence),
-            'emoji': emoji,
+            'image': image_path,  # Calea imaginii în loc de emoji
+            'library': current_library,
             'timestamp': datetime.now().isoformat()
         }
 
@@ -143,39 +180,41 @@ def get_emotion():
         return jsonify({
             'emotion': 'neutral', 
             'confidence': 0.0, 
-            'emoji': '😐', 
+            'image': get_image_for_emotion('neutral', current_library),
+            'library': current_library,
             'timestamp': datetime.now().isoformat()
         })
     
     last_entry = emotion_history[-1]
-    # Re-preia emoji doar în caz sau folosește unul stocat? logica spune să returnăm ultima stare.
-    # Vom returna doar ultima intrare plus un emoji.
-    emoji = random.choice(EMOJI_CATEGORIES.get(last_entry['emotion'], EMOJI_CATEGORIES['neutral']))
+    image_path = get_image_for_emotion(last_entry['emotion'], current_library)
     return jsonify({
         'emotion': last_entry['emotion'],
         'confidence': last_entry['confidence'],
-        'emoji': emoji,
+        'image': image_path,
+        'library': current_library,
         'timestamp': last_entry['timestamp']
     })
 
-@app.route('/get_emoji/<emotion>')
-def get_emoji(emotion):
-    """Obține un emoji aleatoriu pentru o emoție"""
-    emoji = random.choice(EMOJI_CATEGORIES.get(emotion, EMOJI_CATEGORIES['neutral']))
-    return jsonify({'emoji': emoji})
+@app.route('/get_libraries')
+def get_libraries():
+    """Obține lista disponibilă de biblioteci"""
+    return jsonify({
+        'libraries': list(LIBRARIES.keys()),
+        'current': current_library
+    })
 
-@app.route('/change_category', methods=['POST'])
-def change_category():
-    """Schimbă categoria activă de emoji-uri"""
-    global current_category
+@app.route('/switch_library', methods=['POST'])
+def switch_library():
+    """Schimbă biblioteca de imagini"""
+    global current_library
     data = request.get_json()
-    category = data.get('category', 'happy')
+    library = data.get('library', 'clash_royale')
     
-    if category in EMOJI_CATEGORIES:
-        current_category = category
-        return jsonify({'success': True, 'category': current_category})
+    if library in LIBRARIES:
+        current_library = library
+        return jsonify({'success': True, 'library': current_library})
     
-    return jsonify({'success': False, 'error': 'Categorie invalidă'}), 400
+    return jsonify({'success': False, 'error': 'Bibliotecă invalidă'}), 400
 
 @app.route('/get_history')
 def get_history():

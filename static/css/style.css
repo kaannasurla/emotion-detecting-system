@@ -74,6 +74,27 @@ header h1 {
     color: white;
 }
 
+.emotion-image-display {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.emotion-image-display img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    display: none;
+}
+
+.emotion-image-display #fallbackEmoji {
+    font-size: 8em;
+    animation: pulse 2s infinite;
+}
+
 .emoji-display {
     font-size: 8em;
     margin-bottom: 20px;
@@ -162,6 +183,53 @@ header h1 {
 
 .btn-warning {
     background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+/* Library Section */
+.library-section {
+    margin-bottom: 30px;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 15px;
+}
+
+.library-section h3 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.library-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.library-btn {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    border: 2px solid #667eea;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.library-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.library-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #764ba2;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
 /* Categories */

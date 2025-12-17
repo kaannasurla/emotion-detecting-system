@@ -3,6 +3,7 @@ const POLLING_INTERVAL = 1000; // Interval de actualizare în ms
 let chart = null;
 let autoUpdateInterval = null;
 let currentEmotion = 'neutral';
+let currentLibrary = 'clash_royale';
 let videoElement = null;
 let captureCanvas = null;
 let captureContext = null;
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initializeChart();
     checkAvailableModels();
+    loadLibraries();  // Încarcă bibliotecile disponibile
     startCamera();
 });
 
@@ -89,8 +91,19 @@ async function processFrame() {
 function updateUI(data) {
     currentEmotion = data.emotion;
 
-    // Actualizează interfața
-    document.getElementById('emojiDisplay').textContent = data.emoji;
+    // Actualizează interfața cu imaginea
+    const emotionImage = document.getElementById('emotionImage');
+    const fallbackEmoji = document.getElementById('fallbackEmoji');
+    
+    if (data.image) {
+        emotionImage.src = data.image;
+        emotionImage.style.display = 'block';
+        fallbackEmoji.style.display = 'none';
+    } else {
+        emotionImage.style.display = 'none';
+        fallbackEmoji.style.display = 'block';
+    }
+    
     document.getElementById('emotionName').textContent = capitalizeFirst(data.emotion);
 
     // Actualizează bara de încredere
@@ -139,33 +152,6 @@ function stopAutoUpdate() {
     if (autoUpdateInterval) {
         clearInterval(autoUpdateInterval);
         autoUpdateInterval = null;
-    }
-}
-
-// Schimbă categoria de emoji
-async function changeCategory(category) {
-    try {
-        const response = await fetch('/change_category', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ category: category })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showMessage(`Categorie schimbată: ${capitalizeFirst(category)}`, 'success');
-
-            // Actualizează emoji-ul curent
-            const emojiResponse = await fetch(`/get_emoji/${category}`);
-            const emojiData = await emojiResponse.json();
-            document.getElementById('emojiDisplay').textContent = emojiData.emoji;
-        }
-    } catch (error) {
-        console.error('Eroare la schimbarea categoriei:', error);
-        showMessage('Eroare la schimbarea categoriei', 'error');
     }
 }
 
@@ -353,6 +339,61 @@ function capitalizeFirst(str) {
 window.addEventListener('beforeunload', function () {
     stopAutoUpdate();
 });
+
+// --- Funcții noi pentru schimbarea bibliotecilor ---
+
+// Încarcă bibliotecile disponibile și creează butoanele
+async function loadLibraries() {
+    try {
+        const response = await fetch('/get_libraries');
+        const data = await response.json();
+        
+        const libraryButtons = document.getElementById('libraryButtons');
+        libraryButtons.innerHTML = '';
+        
+        data.libraries.forEach(library => {
+            const btn = document.createElement('button');
+            btn.className = 'library-btn' + (library === data.current ? ' active' : '');
+            btn.textContent = capitalizeFirst(library.replace(/_/g, ' '));
+            btn.onclick = () => switchLibrary(library);
+            libraryButtons.appendChild(btn);
+        });
+        
+        currentLibrary = data.current;
+    } catch (error) {
+        console.error('Eroare la încărcarea bibliotecilor:', error);
+        showMessage('Eroare la încărcarea bibliotecilor', 'error');
+    }
+}
+
+// Schimbă biblioteca de imagini
+async function switchLibrary(library) {
+    try {
+        const response = await fetch('/switch_library', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ library: library })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentLibrary = library;
+            showMessage(`Bibliotecă schimbată: ${capitalizeFirst(library.replace(/_/g, ' '))}`, 'success');
+            
+            // Reîncarcă butoanele pentru a reflecta selectarea
+            loadLibraries();
+            
+            // Forțează o nouă detectare pentru a afișa imaginea din noua bibliotecă
+            processFrame();
+        }
+    } catch (error) {
+        console.error('Eroare la schimbarea bibliotecii:', error);
+        showMessage('Eroare la schimbarea bibliotecii', 'error');
+    }
+}
 
 // --- Funcții noi pentru schimbarea modelului ---
 
