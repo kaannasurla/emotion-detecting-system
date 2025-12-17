@@ -1,5 +1,5 @@
 // Variabile globale
-const POLLING_INTERVAL = 500; // Interval de actualizare în ms
+const POLLING_INTERVAL = 100; // Interval de actualizare în ms
 let chart = null;
 let autoUpdateInterval = null;
 let currentEmotion = 'neutral';
