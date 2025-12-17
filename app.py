@@ -12,19 +12,16 @@ import base64
 from collections import deque, Counter
 
 app = Flask(__name__)
-CORS(app)  # Activează CORS
+CORS(app)
 
-# Inițializare detectori
 detectors = {}
 
-# 1. Mediapipe (Default)
 try:
     detectors['mediapipe'] = MediapipeDetector()
     print("✅ Mediapipe detector initialized")
 except Exception as e:
     print(f"❌ Failed to initialize Mediapipe: {e}")
 
-# 2. Tensorflow (Old AI)
 try:
     tf_detector = TensorflowDetector()
     if tf_detector.model_loaded:
@@ -35,12 +32,10 @@ try:
 except Exception as e:
     print(f"❌ Failed to initialize Tensorflow detector: {e}")
 
-# Setare model curent default
 current_model_name = 'mediapipe' if 'mediapipe' in detectors else list(detectors.keys())[0] if detectors else None
 
 def get_current_detector():
     if not current_model_name or current_model_name not in detectors:
-        # Fallback
         if 'mediapipe' in detectors:
             return detectors['mediapipe']
         elif detectors:
@@ -49,14 +44,12 @@ def get_current_detector():
             raise Exception("No detectors available")
     return detectors[current_model_name]
 
-# Configurare biblioteci de imagini
 LIBRARIES = {
     'clash_royale': 'static/libraries/clash_royale',
     'monkey': 'static/libraries/monkey',
     'florin_salam': 'static/libraries/florin_salam'
 }
 
-# Mapare emoții la nume de fișiere
 EMOTION_FILENAMES = {
     'happy': 'happy',
     'sad': 'sad',
@@ -65,16 +58,15 @@ EMOTION_FILENAMES = {
     'neutral': 'neutral'
 }
 
-# Culori pentru bounding box (format HEX pentru CSS/Canvas)
 EMOTION_COLORS = {
-    'happy': '#00ff00',      # Verde
-    'sad': '#0000ff',        # Albastru
-    'angry': '#ff0000',      # Roșu
-    'surprise': '#ffff00',   # Galben
-    'neutral': '#808080'     # Gri
+    'happy': '#00ff00',     
+    'sad': '#0000ff',       
+    'angry': '#ff0000',    
+    'surprise': '#ffff00',   
+    'neutral': '#808080'    
 }
 
-current_library = 'clash_royale'  # Biblioteca selectată
+current_library = 'clash_royale' 
 emotion_history = []
 emotion_window = deque(maxlen=3)
 
@@ -87,21 +79,17 @@ def get_image_for_emotion(emotion, library_name):
         library_path = LIBRARIES[library_name]
         emotion_key = EMOTION_FILENAMES.get(emotion, 'neutral')
         
-        # Caută fișierele cu extensii comune
         for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
             image_file = os.path.join(library_path, f'{emotion_key}.{ext}')
             if os.path.exists(image_file):
-                # Returnează calea relativă pentru frontend
                 return f'/{image_file}'
         
-        # Dacă nu gaseste, caută orice fișier care conține emoția în nume
         if os.path.exists(library_path):
             files = os.listdir(library_path)
             for f in files:
                 if emotion_key in f.lower() and any(f.endswith(ext) for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']):
                     return f'/{os.path.join(library_path, f)}'
         
-        # Fallback - returnează None dacă nu găsește
         return None
     except Exception as e:
         print(f"Error getting image: {e}")
@@ -119,7 +107,6 @@ def process_frame():
         if not data or 'image' not in data:
             return jsonify({'error': 'No image data'}), 400
 
-        # Decodare imagine base64
         image_data = data['image'].split(',')[1]
         image_bytes = base64.b64decode(image_data)
         nparr = np.frombuffer(image_bytes, np.uint8)
@@ -128,26 +115,21 @@ def process_frame():
         if frame is None:
             return jsonify({'error': 'Failed to decode image'}), 400
 
-        # Detectare emoție
         detector = get_current_detector()
         emotion, confidence, face_coords = detector.detect_emotion(frame)
 
-        # Logică de netezire: Mediază detectarea emoțiilor
         global emotion_window
         emotion_window.append((emotion, confidence))
         
-        # Determină emoția logică bazată pe istoricul recent
         emotions = [e[0] for e in emotion_window]
         if emotions:
             final_emotion = Counter(emotions).most_common(1)[0][0]
         else:
             final_emotion = emotion
             
-        # Calculează încrederea medie pentru emoția dominantă
         confidences = [e[1] for e in emotion_window if e[0] == final_emotion]
         final_confidence = sum(confidences) / len(confidences) if confidences else confidence
 
-        # Actualizare istoric
         global emotion_history
         image_path = get_image_for_emotion(final_emotion, current_library)
         
@@ -160,24 +142,20 @@ def process_frame():
         if len(emotion_history) > 50:
             emotion_history.pop(0)
 
-        # Opțiune pentru afișarea Face Mesh (debug/visualizer)
         show_mesh = data.get('show_mesh', False)
         processed_image_base64 = None
 
         if show_mesh:
-            # Desenează mesh-ul și HUD-ul direct pe imagine
-            # Facem o copie pentru a nu modifica originalul dacă e nevoie de el curat (deși aici e ok)
             debug_frame = frame.copy()
             debug_frame = detector.draw_results(debug_frame, emotion, final_confidence)
             
-            # Encodează imaginea procesată înapoi în base64 pentru a fi afișată în frontend
             _, buffer = cv2.imencode('.jpg', debug_frame)
             processed_image_base64 = base64.b64encode(buffer).decode('utf-8')
 
         response_data = {
             'emotion': final_emotion,
             'confidence': float(final_confidence),
-            'image': image_path,  # Calea imaginii în loc de emoji
+            'image': image_path,
             'library': current_library,
             'timestamp': datetime.now().isoformat(),
             'color': EMOTION_COLORS.get(final_emotion, '#ffffff')
@@ -330,3 +308,4 @@ if __name__ == '__main__':
     print("📡 Server running on http://{}:{}".format(host, port))
     print("🎥 Camera access required")
     app.run(debug=True, threaded=True, host=host, port=port)
+
