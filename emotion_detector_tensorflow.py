@@ -7,7 +7,6 @@ class EmotionDetector:
         """Inițializează detectorul de emoții"""
         self.emotions = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
         
-        # Mapare la categoriile noastre (5 emoții principale)
         self.emotion_mapping = {
             'angry': 'angry',
             'disgust': 'angry',
@@ -18,7 +17,6 @@ class EmotionDetector:
             'neutral': 'neutral'
         }
         
-        # Încarcă modelul dacă există
         self.model_loaded = False
         if os.path.exists(model_path):
             try:
@@ -35,7 +33,6 @@ class EmotionDetector:
             print("Using simulation mode...")
             self.model_loaded = False
         
-        # Încarcă clasificatorul Haar Cascade pentru detectarea fețelor
         cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
         
@@ -44,17 +41,13 @@ class EmotionDetector:
     
     def preprocess_face(self, face_img):
         """Preprocesează imaginea feței pentru model"""
-        # Redimensionează la 48x48 (dimensiunea standard pentru modele de emoții)
         face_img = cv2.resize(face_img, (48, 48))
         
-        # Convertește la grayscale dacă este color
         if len(face_img.shape) == 3:
             face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY)
         
-        # Normalizează
         face_img = face_img / 255.0
         
-        # Adaugă dimensiuni pentru batch și canal
         face_img = np.expand_dims(face_img, axis=0)
         face_img = np.expand_dims(face_img, axis=-1)
         
@@ -73,16 +66,13 @@ class EmotionDetector:
         if len(faces) == 0:
             return 'neutral', 0.0, None
         
-        # Folosește prima față detectată (sau cea mai mare)
         if len(faces) > 1:
-            # Sortează după dimensiune (cea mai mare față)
             faces = sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
         
         x, y, w, h = faces[0]
         face_roi = gray[y:y+h, x:x+w]
         
         if self.model_loaded:
-            # Folosește modelul real
             try:
                 face_img = self.preprocess_face(face_roi)
                 predictions = self.model.predict(face_img, verbose=0)
@@ -90,13 +80,11 @@ class EmotionDetector:
                 confidence = float(predictions[0][emotion_idx])
                 emotion = self.emotions[emotion_idx]
                 
-                # Mapează la categoriile noastre
                 emotion = self.emotion_mapping.get(emotion, 'neutral')
             except Exception as e:
                 print(f"Error in model prediction: {e}")
                 emotion, confidence = self.simulate_emotion_detection(face_roi)
         else:
-            # Simulare: detectare bazată pe caracteristici simple
             emotion, confidence = self.simulate_emotion_detection(face_roi)
         
         return emotion, confidence, (int(x), int(y), int(w), int(h))
@@ -106,20 +94,15 @@ class EmotionDetector:
         Simulează detectarea emoțiilor pe baza caracteristicilor simple
         Această metodă este folosită când nu avem un model antrenat
         """
-        # Calculează brightness-ul mediu
         brightness = np.mean(face_roi)
         
-        # Calculează contrastul (deviația standard)
         contrast = np.std(face_roi)
         
-        # Calculează histograma pentru a detecta distribuția tonurilor
         hist = cv2.calcHist([face_roi], [0], None, [256], [0, 256])
         hist_normalized = hist.ravel() / hist.sum()
         
-        # Calculează entropia (măsură a complexității)
         entropy = -np.sum(hist_normalized * np.log2(hist_normalized + 1e-10))
         
-        # Logică de clasificare bazată pe multiple caracteristici
         if brightness > 135 and contrast > 50 and entropy > 6.5:
             return 'happy', 0.72 + (brightness - 135) * 0.001
         elif brightness < 100 and contrast < 40:
@@ -137,16 +120,12 @@ class EmotionDetector:
         faces = self.face_cascade.detectMultiScale(gray, 1.1, 5)
         
         for (x, y, w, h) in faces:
-            # Culoare în funcție de emoție
             color = self.get_emotion_color(emotion)
             
-            # Desenează dreptunghi în jurul feței
             cv2.rectangle(frame, (x, y), (x+w, y+h), color, 3)
             
-            # Adaugă text cu emoția și încrederea
             text = f'{emotion.upper()}: {confidence:.1%}'
             
-            # Fundal pentru text
             (text_width, text_height), _ = cv2.getTextSize(
                 text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2
             )
@@ -169,7 +148,6 @@ class EmotionDetector:
                 2
             )
             
-            # Adaugă emoji în colț
             emoji = self.get_emotion_emoji(emotion)
             cv2.putText(
                 frame,
