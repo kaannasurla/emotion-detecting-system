@@ -32,72 +32,80 @@
                             style="transition: all 0.3s ease;">Tensorflow</button>
                     </div>
                 </div>
-                <div class="video-container">
-                    <div style="position: relative;">
-                        <video id="videoFeed" autoplay playsinline muted
-                            style="width: 100%; max-width: 640px; border-radius: 8px;"></video>
-                        <canvas id="overlayCanvas"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
-                        <canvas id="captureCanvas" style="display: none;"></canvas>
-                    </div>
+                <!-- Toggle Face Mesh -->
+                <div style="margin-top: 15px;">
+                    <label class="switch" style="display: inline-flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="toggleFaceMesh" onchange="toggleMesh()" style="margin-right: 10px;">
+                        <span style="font-weight: bold; color: #4a5568;">Afișează Face Mesh</span>
+                    </label>
                 </div>
-            </section>
+    </div>
+    <div class="video-container">
+        <div style="position: relative;">
+            <video id="videoFeed" autoplay playsinline muted
+                style="width: 100%; max-width: 640px; border-radius: 8px;"></video>
+            <canvas id="overlayCanvas"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+            <canvas id="captureCanvas" style="display: none;"></canvas>
+        </div>
+    </div>
+    </section>
 
-            <!-- Secțiune Afișare Emoții -->
-            <section class="emotion-display">
-                <div class="emotion-card">
-                    <div class="emoji-display" id="emojiDisplay">😐</div>
-                    <h2 class="emotion-name" id="emotionName">Neutral</h2>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidenceFill"></div>
-                    </div>
-                    <p class="confidence-text" id="confidenceText">Încredere: 0%</p>
-                </div>
-            </section>
+    <!-- Secțiune Afișare Emoții -->
+    <section class="emotion-display">
+        <div class="emotion-card">
+            <div class="emoji-display" id="emojiDisplay">😐</div>
+            <h2 class="emotion-name" id="emotionName">Neutral</h2>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            <p class="confidence-text" id="confidenceText">Încredere: 0%</p>
+        </div>
+    </section>
 
-            <!-- Secțiune Controale -->
-            <section class="controls">
+    <!-- Secțiune Controale -->
+    <section class="controls">
 
 
-                <button class="btn btn-primary" onclick="updateEmotion()">
-                    🔄 Detectează Emoția
-                </button>
-                <button class="btn btn-success" onclick="saveCapture()">
-                    📸 Salvează Captură
-                </button>
-                <button class="btn btn-info" onclick="toggleHistory()">
-                    📊 Istoric
-                </button>
-                <button class="btn btn-warning" onclick="clearHistory()">
-                    🗑️ Șterge Istoric
-                </button>
-            </section>
+        <button class="btn btn-primary" onclick="updateEmotion()">
+            🔄 Detectează Emoția
+        </button>
+        <button class="btn btn-success" onclick="saveCapture()">
+            📸 Salvează Captură
+        </button>
+        <button class="btn btn-info" onclick="toggleHistory()">
+            📊 Istoric
+        </button>
+        <button class="btn btn-warning" onclick="clearHistory()">
+            🗑️ Șterge Istoric
+        </button>
+    </section>
 
-            <!-- Selecție Categorii -->
-            <section class="categories">
-                <h3>Categorii Emoji:</h3>
-                <div class="category-buttons">
-                    <button class="category-btn" onclick="changeCategory('happy')">😊 Fericit</button>
-                    <button class="category-btn" onclick="changeCategory('sad')">😢 Trist</button>
-                    <button class="category-btn" onclick="changeCategory('angry')">😠 Furios</button>
-                    <button class="category-btn" onclick="changeCategory('surprise')">😲 Surprins</button>
-                    <button class="category-btn" onclick="changeCategory('neutral')">😐 Neutru</button>
-                </div>
-            </section>
+    <!-- Selecție Categorii -->
+    <section class="categories">
+        <h3>Categorii Emoji:</h3>
+        <div class="category-buttons">
+            <button class="category-btn" onclick="changeCategory('happy')">😊 Fericit</button>
+            <button class="category-btn" onclick="changeCategory('sad')">😢 Trist</button>
+            <button class="category-btn" onclick="changeCategory('angry')">😠 Furios</button>
+            <button class="category-btn" onclick="changeCategory('surprise')">😲 Surprins</button>
+            <button class="category-btn" onclick="changeCategory('neutral')">😐 Neutru</button>
+        </div>
+    </section>
 
-            <!-- Secțiune Istoric Grafic -->
-            <section class="history-section" id="historySection" style="display: none;">
-                <h3>Istoric Emoții</h3>
-                <canvas id="emotionChart"></canvas>
-            </section>
+    <!-- Secțiune Istoric Grafic -->
+    <section class="history-section" id="historySection" style="display: none;">
+        <h3>Istoric Emoții</h3>
+        <canvas id="emotionChart"></canvas>
+    </section>
 
-            <!-- Mesaje Status -->
-            <div class="status-message" id="statusMessage"></div>
-        </main>
+    <!-- Mesaje Status -->
+    <div class="status-message" id="statusMessage"></div>
+    </main>
 
-        <footer>
-            <p>&copy; 2024 Emotion Detecting System | Powered by AI & OpenCV</p>
-        </footer>
+    <footer>
+        <p>&copy; 2024 Emotion Detecting System | Powered by AI & OpenCV</p>
+    </footer>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

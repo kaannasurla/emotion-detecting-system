@@ -124,6 +124,20 @@ def process_frame():
         if len(emotion_history) > 50:
             emotion_history.pop(0)
 
+        # Opțiune pentru afișarea Face Mesh (debug/visualizer)
+        show_mesh = data.get('show_mesh', False)
+        processed_image_base64 = None
+
+        if show_mesh:
+            # Desenează mesh-ul și HUD-ul direct pe imagine
+            # Facem o copie pentru a nu modifica originalul dacă e nevoie de el curat (deși aici e ok)
+            debug_frame = frame.copy()
+            debug_frame = detector.draw_results(debug_frame, emotion, final_confidence)
+            
+            # Encodează imaginea procesată înapoi în base64 pentru a fi afișată în frontend
+            _, buffer = cv2.imencode('.jpg', debug_frame)
+            processed_image_base64 = base64.b64encode(buffer).decode('utf-8')
+
         response_data = {
             'emotion': final_emotion,
             'confidence': float(final_confidence),
@@ -131,6 +145,9 @@ def process_frame():
             'timestamp': datetime.now().isoformat(),
             'color': EMOTION_COLORS.get(final_emotion, '#ffffff')
         }
+        
+        if processed_image_base64:
+            response_data['processed_image'] = processed_image_base64
 
         if face_coords:
             response_data['face_coordinates'] = {

@@ -8,6 +8,7 @@ let captureCanvas = null;
 let captureContext = null;
 let overlayCanvas = null;
 let overlayContext = null;
+let showFaceMesh = false; // Stare pentru toggle
 
 // Inițializare la încărcarea paginii
 document.addEventListener('DOMContentLoaded', function () {
@@ -68,7 +69,10 @@ async function processFrame() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ image: imageData })
+            body: JSON.stringify({
+                image: imageData,
+                show_mesh: showFaceMesh
+            })
         });
 
         const data = await response.json();
@@ -107,8 +111,28 @@ function updateUI(data) {
     // Actualizează graficul
     updateChart();
 
-    // Desenează bounding box
-    drawBoundingBox(data);
+    // Desenează bounding box SAU imaginea procesată (Mesh)
+    if (data.processed_image) {
+        drawProcessedImage(data.processed_image);
+    } else {
+        drawBoundingBox(data);
+    }
+}
+
+function toggleMesh() {
+    const checkbox = document.getElementById('toggleFaceMesh');
+    showFaceMesh = checkbox.checked;
+}
+
+function drawProcessedImage(base64Image) {
+    if (!overlayContext || !overlayCanvas) return;
+
+    const img = new Image();
+    img.onload = function () {
+        overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        overlayContext.drawImage(img, 0, 0, overlayCanvas.width, overlayCanvas.height);
+    };
+    img.src = 'data:image/jpeg;base64,' + base64Image;
 }
 
 function drawBoundingBox(data) {
