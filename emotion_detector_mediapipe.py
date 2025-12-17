@@ -111,35 +111,46 @@ class EmotionDetector:
         emotion = 'neutral'
         confidence = 0.5
         
-        # Fericit: Zâmbet semnificativ sau gură deschisă cu zâmbet
-        # Raport zâmbet > 0.02 înseamnă că colțurile sunt mai sus decât centrul
-        if smile_ratio > 0.02:
+        # Modificare logică detecție furie - mai sensibil la sprâncene și ochi
+        # Furie: Sprâncene coborâte (mai ales interior), ochi mijiți (EAR mic), gură strânsă sau încordată
+        
+        # Calculate brow simple average height or "frown" factor
+        # Dacă interiorul sprâncenelor e mult mai JOS decât exteriorul -> FURIE (V shape)
+        # Dacă interiorul e mult mai SUS -> TRISTEȚE / SURPRIZĂ (^ shape / sad brows)
+        
+        # right_brow_stress = inner.y - outer.y. 
+        # inner.y > outer.y (pozitiv) înseamnă inner e mai JOS (furie)
+        # inner.y < outer.y (negativ) înseamnă inner e mai SUS (tristețe)
+        
+        # HYPER SENSITIVE ANGER
+        # Orice mică tendință de "V" la sprâncene ( > 0.0001 )
+        is_frowning = (left_brow_stress > 0.0001) and (right_brow_stress > 0.0001)
+        is_sad_brows = (left_brow_stress < -0.01) and (right_brow_stress < -0.01)
+
+        # -------------------
+        # LOGICA CLASIFICARE
+        # -------------------
+
+        # Fericit
+        if smile_ratio > 0.015:
             emotion = 'happy'
             confidence = 0.8 + min(smile_ratio * 5, 0.2)
             
-        # Surprins: Ochi larg deschiși și gură deschisă (de obicei ovală)
-        elif avg_ear > 0.35 and mar > 0.3:
+        # Surprins
+        elif avg_ear > 0.35 and mar > 0.25:
             emotion = 'surprise'
             confidence = 0.8 + min((avg_ear - 0.35) * 4, 0.2)
             
-        # Furios: EAR scăzut (mijește ochii) + Compresie (MAR scăzut) + poate sprâncene
-        elif avg_ear < 0.25 and mar < 0.2:
-            # Verifică dacă sprâncenele sunt încruntate? (Nu e ușor fără o linie de bază pașnică)
-            # Presupunând mijește ochii + gură închisă = Furios/Serios
-            emotion = 'angry'
-            confidence = 0.7
-            
-        # Trist: Zâmbet inversat? Colțuri mai jos decât centrul
-        # Prag ajustat: -0.005 pentru sensibilitate mai mare.
-        # ȘI verifică dacă sprâncenele arată 'trist' (interior mai sus ca exterior) SAU doar încruntare puternică.
-        elif smile_ratio < -0.005:
+        # Furios - HYPER SENSITIVE
+        # Dacă există cea mai mică încruntare SAU ochi mijiți/gură strânsă (praguri foarte largi)
+        elif is_frowning or (avg_ear < 0.30 and mar < 0.25):
+             emotion = 'angry'
+             confidence = 0.8 + (0.1 if is_frowning else 0)
+             
+        # Tristețe
+        elif smile_ratio < -0.005 or is_sad_brows:
             emotion = 'sad'
-            confidence = 0.6 + abs(smile_ratio * 2)
-            
-        # Rezervă Trist: Încruntare ușoară + Sprâncene Triste
-        elif smile_ratio < -0.002 and sad_brows:
-            emotion = 'sad'
-            confidence = 0.65
+            confidence = 0.6 + (0.1 if is_sad_brows else 0)
             
         else:
             emotion = 'neutral'
