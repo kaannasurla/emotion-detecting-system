@@ -257,7 +257,10 @@ def health():
     return jsonify({'status': 'ok', 'message': 'Backend is running'})
 
 if __name__ == '__main__':
+    host = os.environ.get('FLASK_HOST', '127.0.0.1')
+    port = os.environ.get('FLASK_PORT', '5000')
+    
     print("🎭 Emotion Detection System")
-    print("📡 Server running on http://localhost:5000")
+    print("📡 Server running on http://{}:{}".format(host, port))
     print("🎥 Camera access required")
-    app.run(debug=True, threaded=True, port=5000)
+    app.run(debug=True, threaded=True, host=host, port=port)
