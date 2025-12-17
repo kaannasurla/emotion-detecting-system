@@ -183,9 +183,22 @@ function stopAutoUpdate() {
 async function saveCapture() {
     if (!videoElement || videoElement.paused) return;
 
+    // Desenează imaginea curentă pe canvas
     captureContext.drawImage(videoElement, 0, 0, captureCanvas.width, captureCanvas.height);
+
+    // Obține data URL
     const imageData = captureCanvas.toDataURL('image/jpeg', 0.9);
 
+    // 1. Descarcă local (Client-side)
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    link.download = `capture_${timestamp}.jpg`;
+    link.href = imageData;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 2. Salvează pe server (Server-side)
     try {
         const response = await fetch('/save_capture', {
             method: 'POST',
@@ -200,11 +213,11 @@ async function saveCapture() {
         if (data.success) {
             showMessage(`Captură salvată: ${data.filename}`, 'success');
         } else {
-            showMessage('Eroare la salvarea capturii: ' + (data.error || 'Necunoscută'), 'error');
+            showMessage('Eroare la salvarea pe server: ' + (data.error || 'Necunoscută'), 'error');
         }
     } catch (error) {
-        console.error('Eroare la salvarea capturii:', error);
-        showMessage('Eroare la salvarea capturii', 'error');
+        console.error('Eroare la salvarea capturii pe server:', error);
+        showMessage('Captură descărcată, dar eroare la server.', 'warning');
     }
 }
 
