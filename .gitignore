@@ -57,7 +57,7 @@ static/captures/*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-models/*
+models/*.h5
 
 # Training data
 training/data/

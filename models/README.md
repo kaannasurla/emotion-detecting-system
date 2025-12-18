@@ -1,0 +1,1 @@
+Pune aici modelul preantrenat sau vezi training/README.md pentru antreanare proprie.
