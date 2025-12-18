@@ -336,7 +336,9 @@ async function updateChart() {
 
 // Actualizează culorile în funcție de emoție
 function updateEmotionColors(emotion) {
-    const emotionCard = document.querySelector('.emotion-card');
+    const emotionCard = document.getElementById('emotionCardWrapper');
+    if (!emotionCard) return;
+
     const gradients = {
         'happy': 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         'sad': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
@@ -345,7 +347,8 @@ function updateEmotionColors(emotion) {
         'neutral': 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)'
     };
 
-    emotionCard.style.background = gradients[emotion] || gradients['neutral'];
+    const gradient = gradients[emotion] || gradients['neutral'];
+    emotionCard.style.background = gradient;
 }
 
 // Redă sunetul specific emoției
