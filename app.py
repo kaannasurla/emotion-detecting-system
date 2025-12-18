@@ -47,7 +47,7 @@ def get_current_detector():
 LIBRARIES = {
     'clash_royale': 'static/libraries/clash_royale',
     'monkey': 'static/libraries/monkey',
-    'florin_salam': 'static/libraries/florin_salam'
+    'regele': 'static/libraries/regele'
 }
 
 EMOTION_FILENAMES = {
@@ -249,9 +249,14 @@ def switch_model():
 @app.route('/get_models')
 def get_models():
     """Returnează modelele disponibile și cel activ"""
+    model_status = {
+        'mediapipe': 'mediapipe' in detectors,
+        'tensorflow': 'tensorflow' in detectors
+    }
     return jsonify({
         'models': list(detectors.keys()),
-        'current': current_model_name
+        'current': current_model_name,
+        'status': model_status
     })
 
 @app.route('/save_capture', methods=['POST'])

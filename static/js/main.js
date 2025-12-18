@@ -391,7 +391,7 @@ async function loadLibraries() {
         data.libraries.forEach(library => {
             const btn = document.createElement('button');
             btn.className = 'library-btn' + (library === data.current ? ' active' : '');
-            btn.textContent = capitalizeFirst(library.replace(/_/g, ' '));
+            btn.textContent = library.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             btn.onclick = () => switchLibrary(library);
             libraryButtons.appendChild(btn);
         });
@@ -439,13 +439,22 @@ async function checkAvailableModels() {
         const response = await fetch('/get_models');
         const data = await response.json();
 
-        // Dacă avem mai mult de un model, afișăm toggle-ul
-        if (data.models && data.models.length > 1) {
-            document.getElementById('modelToggleContainer').style.display = 'block';
-        }
+        // Afișăm întotdeauna containerul pentru a avea acces la Face Mesh și a vedea statusul modelelor
+        document.getElementById('modelToggleContainer').style.display = 'block';
 
         if (data.current) {
             updateModelButtons(data.current);
+        }
+
+        const btnTf = document.getElementById('btnTensorflow');
+        if (data.status && !data.status.tensorflow) {
+            // TensorFlow indisponibil - aplicăm stilurile DUPĂ updateModelButtons pentru a nu fi suprascrise
+            btnTf.innerHTML = 'Tensorflow ⚠️';
+            btnTf.disabled = true;
+            btnTf.style.opacity = '0.6';
+            btnTf.style.cursor = 'not-allowed';
+            btnTf.title = 'Modelul TensorFlow nu a fost găsit';
+            btnTf.onclick = null; // Scoatem handler-ul de click
         }
     } catch (error) {
         console.error('Eroare la verificarea modelelor:', error);
@@ -489,7 +498,13 @@ function updateModelButtons(activeModel) {
 
     if (activeModel === 'mediapipe') {
         btnMp.style.cssText = activeStyle;
-        btnTf.style.cssText = inactiveStyle;
+
+        // Dacă butonul TensorFlow este dezactivat (indisponibil), păstrăm stilurile vizuale de "disabled"
+        if (btnTf.disabled) {
+            btnTf.style.cssText = inactiveStyle + " opacity: 0.6; cursor: not-allowed;";
+        } else {
+            btnTf.style.cssText = inactiveStyle;
+        }
     } else {
         btnMp.style.cssText = inactiveStyle;
         btnTf.style.cssText = activeStyle;
