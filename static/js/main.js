@@ -9,7 +9,8 @@ let captureCanvas = null;
 let captureContext = null;
 let overlayCanvas = null;
 let overlayContext = null;
-let showFaceMesh = false; // Stare pentru toggle
+let showFaceMesh = false; // toggle face mesh
+let soundEnabled = false; // toggle sunet
 
 // Inițializare la încărcarea paginii
 document.addEventListener('DOMContentLoaded', function () {
@@ -93,6 +94,11 @@ async function processFrame() {
 
 // Actualizează interfața cu datele primite
 function updateUI(data) {
+    // Verifică dacă emoția s-a schimbat și redă sunetul dacă este activat
+    if (soundEnabled && data.emotion !== currentEmotion && data.emotion !== 'neutral') {
+        playEmotionSound(data.emotion);
+    }
+
     currentEmotion = data.emotion;
 
     // Actualizează interfața cu imaginea
@@ -118,9 +124,6 @@ function updateUI(data) {
     // Schimbă culoarea
     updateEmotionColors(data.emotion);
 
-    // Redă sunet (doar dacă s-a schimbat emoția semnificativ, poate adăugăm logică aici ca să nu fie enervant)
-    // playEmotionSound(data.emotion); 
-
     // Actualizează graficul
     updateChart();
 
@@ -135,6 +138,11 @@ function updateUI(data) {
 function toggleMesh() {
     const checkbox = document.getElementById('toggleFaceMesh');
     showFaceMesh = checkbox.checked;
+}
+
+function toggleSound() {
+    const checkbox = document.getElementById('toggleSound');
+    soundEnabled = checkbox.checked;
 }
 
 function drawProcessedImage(base64Image) {
@@ -342,8 +350,8 @@ function updateEmotionColors(emotion) {
 
 // Redă sunetul specific emoției
 function playEmotionSound(emotion) {
-    const audio = new Audio(`/static/sounds/${emotion}.mp3`);
-    audio.volume = 0.3;
+    const audio = new Audio(`/static/sounds/${emotion}.wav`);
+    audio.volume = 0.5;
     audio.play().catch(error => {
         console.log('Nu s-a putut reda sunetul:', error);
     });

@@ -40,11 +40,17 @@
                             style="transition: all 0.3s ease;">Tensorflow</button>
                     </div>
                     <!-- Toggle Face Mesh -->
-                    <div style="margin-top: 15px;">
+                    <div style="margin-top: 15px; display: flex; justify-content: center; gap: 20px;">
                         <label class="switch" style="display: inline-flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="toggleFaceMesh" onchange="toggleMesh()"
                                 style="margin-right: 10px;">
                             <span style="font-weight: bold; color: #4a5568;">Afișează Face Mesh</span>
+                        </label>
+
+                        <label class="switch" style="display: inline-flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="toggleSound" onchange="toggleSound()"
+                                style="margin-right: 10px;">
+                            <span style="font-weight: bold; color: #4a5568;">Sunet</span>
                         </label>
                     </div>
                 </div>
