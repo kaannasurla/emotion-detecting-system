@@ -10,11 +10,14 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Dropout, Flatte
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.regularizers import l2
+from sklearn.utils.class_weight import compute_class_weight
+import seaborn as sns
 
 # Configurare
 IMG_SIZE = 48
 BATCH_SIZE = 64
-EPOCHS = 50
+EPOCHS = 40
 LEARNING_RATE = 0.001
 DATA_DIR = 'data'  # Structura așteptată: data/train/nume_clasă și data/test/nume_clasă
 MODEL_PATH = '../models/emotion_model.h5'
@@ -74,32 +77,32 @@ def build_model(num_classes):
     
     # Bloc 1
     model.add(Input(shape=(IMG_SIZE, IMG_SIZE, 1)))
-    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
-    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # Bloc 2
-    model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(128, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
-    model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(128, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # Bloc 3
-    model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(256, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
-    model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(256, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     # Strat Dens
     model.add(Flatten())
-    model.add(Dense(512, activation='relu'))
+    model.add(Dense(512, activation='relu', kernel_initializer='he_normal', kernel_regularizer=l2(0.001)))
     model.add(BatchNormalization())
     model.add(Dropout(0.5))
     
@@ -147,6 +150,15 @@ reduce_lr = ReduceLROnPlateau(
     min_lr=1e-6
 )
 
+# Calculare greutăți clase (pentru dataset dezechilibrat)
+class_weights = compute_class_weight(
+    class_weight='balanced',
+    classes=np.unique(train_generator.classes),
+    y=train_generator.classes
+)
+class_weights_dict = dict(enumerate(class_weights))
+print(f"Greutăți clase: {class_weights_dict}")
+
 # Antrenare
 print("Pornire antrenare...")
 history = model.fit(
@@ -155,6 +167,7 @@ history = model.fit(
     epochs=EPOCHS,
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE,
+    class_weight=class_weights_dict,
     callbacks=[checkpoint, early_stopping, reduce_lr]
 )
 
@@ -183,6 +196,29 @@ y_true = validation_generator.classes
 print("\nConfusion Matrix:")
 cm = confusion_matrix(y_true, y_pred)
 print(cm)
+
+# Salvare matrice de confuzie ca imagine
+plt.figure(figsize=(10, 8))
+# Verificăm dacă seaborn este disponibil, altfel folosim matplotlib standard
+try:
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel('Prezis')
+    plt.ylabel('Real')
+    plt.title('Matrice de Confuzie')
+    plt.savefig('confusion_matrix.png')
+    print("Matricea de confuzie salvată în confusion_matrix.png")
+except Exception as e:
+    print(f"Nu s-a putut genera heatmap-ul cu seaborn: {e}")
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Matrice de Confuzie')
+    plt.colorbar()
+    tick_marks = np.arange(len(class_names))
+    plt.xticks(tick_marks, class_names, rotation=45)
+    plt.yticks(tick_marks, class_names)
+    plt.tight_layout()
+    plt.ylabel('Real')
+    plt.xlabel('Prezis')
+    plt.savefig('confusion_matrix.png')
 
 print("\nClassification Report:")
 print(classification_report(y_true, y_pred, target_names=class_names))

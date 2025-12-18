@@ -1,38 +1,38 @@
-# 🎭 Emotion Detection System
+# Emotion Detection System
 
 Un sistem performant de detectare a emoțiilor în timp real, dezvoltat în Python folosind **MediaPipe** și **Flask**. Aplicația analizează fluxul video de la camera web pentru a identifica expresii faciale geometrice și le transpune instantaneu în emoji-uri animate sau imagini tematice.
 
-## 📋 Cuprins
+## Cuprins
 1. [Funcționalități Principale](#-funcționalități-principale)
 2. [Tehnologii Utilizate](#-tehnologii-utilizate)
 3. [Instalare și Configurare](#-instalare-și-configurare)
 4. [Structura Proiectului](#-structura-proiectului)
 5. [Depanare (Troubleshooting)](#-depanare-troubleshooting)
 
-## ✨ Funcționalități Principale
+## Funcționalități Principale
 
-### 🧠 Detectare Inteligentă
+### Detectare Inteligentă
 *   **MediaPipe Face Mesh:** Utilizează 468 de puncte faciale 3D pentru o detectare precisă a geometriei feței, permițând identificarea subtilă a expresiilor (zâmbet, încruntare, surpriză) fără a necesita GPU dedicat.
 *   **Mod Hibrid (Opțional):** Suportă integrarea modelelor deep learning (TensorFlow/Keras) pentru o clasificare bazată pe rețele neuronale convoluționale (CNN), dacă un model antrenat este prezent.
 
-### 🎨 Experiență Vizuală Interactivă
+### Experiență Vizuală Interactivă
 *   **Feedback Instant:** Afișează imaginea corespunzătoare emoției detectate în timp real.
 *   **Biblioteci Tematice:** Comută între diferite pachete de imagini distractive (ex. Clash Royale, Florin Salam, Meme-uri) direct din interfață.
 *   **Face Mesh Visualizer:** Un mod de debug vizual care suprapune rețeaua neuronală pe fața utilizatorului, util pentru a înțelege cum "vede" computerul fața.
 *   **Indicatoare Vizuale:** Bounding box colorat dinamic în funcție de emoție (Verde=Fericit, Roșu=Furios, etc.) și afișarea scorului de încredere.
 
-### 📊 Analiză și Date
+### Analiză și Date
 *   **Monitorizare Emoțională:** Un grafic live urmărește evoluția emoțiilor detectate și nivelul de încredere al algoritmului.
 *   **Istoric:** Păstrează un jurnal al detectărilor recente pentru analiză.
 *   **Capturi Foto:** Funcție integrată pentru a salva momentele amuzante sau interesante direct pe disc în folderul `static/captures`.
 
-## 🛠️ Tehnologii Utilizate
+## Tehnologii Utilizate
 
 *   **Backend:** Python 3.8+, Flask, OpenCV, MediaPipe, NumPy.
 *   **Frontend:** HTML5, Modern CSS, JavaScript (Vanilla), Chart.js.
 *   **AI/ML:** MediaPipe Solutions (Default), TensorFlow (Opțional pentru modele custom).
 
-## 🚀 Instalare și Configurare
+## Instalare și Configurare
 
 ### Recomandat: Rulare cu Docker
 Această metodă izolează aplicația, dar necesită configurarea accesului la cameră.
